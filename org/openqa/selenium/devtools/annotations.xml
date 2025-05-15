@@ -1,0 +1,5 @@
+<root>
+    <item name='org.openqa.selenium.devtools.CdpVersionFinder'>
+        <annotation name='java.lang.Deprecated'/>
+    </item>
+</root>
