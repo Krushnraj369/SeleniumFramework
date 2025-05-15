@@ -2,6 +2,7 @@ package Tests;
 
 import Pages.LoginPage;
 import Pages.OtpPage;
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -32,7 +33,7 @@ public class LoginTest {
 
     @Test
     public void testLoginWithOtp() {
-        // Login with credentials
+        // Step 1: Enter Login Credentials
         wait.until(ExpectedConditions.visibilityOf(loginPage.getUsernameField()));
         loginPage.enterUsername("1");
 
@@ -42,13 +43,16 @@ public class LoginTest {
         wait.until(ExpectedConditions.elementToBeClickable(loginPage.getLoginButton()));
         loginPage.clickLoginButton();
 
-        // Handle OTP
+        // Step 2: Enter OTP
         wait.until(ExpectedConditions.visibilityOfAllElements(otpPage.getOtpFields()));
         otpPage.enterOtp("123456"); // Replace with actual OTP
 
-        // If there's a verify button
-        // wait.until(ExpectedConditions.elementToBeClickable(otpPage.getVerifyButton()));
-        // otpPage.clickVerifyButton();
+        wait.until(ExpectedConditions.elementToBeClickable(otpPage.getVerifyButton()));
+        otpPage.clickVerifyButton();
+
+        // Step 3: Wait for Dashboard to Load
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//img[@alt='IBMB']")));
+        System.out.println("✅ Login Successful. Dashboard loaded.");
     }
 
     @AfterMethod
