@@ -1,8 +1,9 @@
-package Tests;
+package com.jk.selenium.Tests;
 
-import Pages.DashboardPage;
-import Pages.LoginPage;
-import Pages.OtpPage;
+import com.jk.selenium.Pages.DashboardPage;
+import com.jk.selenium.Pages.LoginPage;
+import com.jk.selenium.Pages.OtpPage;
+import com.jk.selenium.Util.ConfigReader;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -28,7 +29,10 @@ public class LoginTest {
         driver.manage().window().maximize();
 
         wait = new WebDriverWait(driver, Duration.ofSeconds(20));
-        driver.get("https://netbankinguat.aiplservices.com:31001/netbanking/login");
+
+        // ✅ Get URL from config file
+        String adminUrl = ConfigReader.getProperty("admin.url");
+        driver.get(adminUrl);
 
         loginPage = new LoginPage(driver);
         otpPage = new OtpPage(driver);
@@ -36,14 +40,19 @@ public class LoginTest {
 
     @Test
     public void testLoginWithOtpAndDashboardLoad() throws InterruptedException {
+        // ✅ Get credentials from config
+        String username = ConfigReader.getProperty("admin.username");
+        String password = ConfigReader.getProperty("admin.password");
+        String otpCode = ConfigReader.getProperty("admin.otp");
+
         // Step 1: Enter username
         wait.until(ExpectedConditions.visibilityOf(loginPage.getUsernameField()));
-        loginPage.enterUsername("1");
+        loginPage.enterUsername(username);
         System.out.println("✅ Entered username.");
 
         // Step 2: Enter password
         wait.until(ExpectedConditions.visibilityOf(loginPage.getPasswordField()));
-        loginPage.enterPassword("Qaws@1212");
+        loginPage.enterPassword(password);
         System.out.println("✅ Entered password.");
 
         // Step 3: Click Login button
@@ -55,8 +64,8 @@ public class LoginTest {
         wait.until(ExpectedConditions.visibilityOfAllElements(otpPage.getOtpFields()));
         System.out.println("✅ OTP fields are visible.");
 
-        // Step 5: Enter OTP digits
-        enterOtpDigits();
+        // Step 5: Enter OTP digits (use config value)
+        enterOtpDigits(otpCode);
         System.out.println("✅ OTP entered.");
 
         // Step 6: Click Verify button (updated locator)
@@ -93,20 +102,20 @@ public class LoginTest {
     /**
      * Helper method to enter OTP digits one by one or as a full string based on field count
      */
-    private void enterOtpDigits() throws InterruptedException {
+    private void enterOtpDigits(String otpCode) throws InterruptedException {
         List<WebElement> otpFields = otpPage.getOtpFields();
 
-        if (otpFields.size() == "000000".length()) {
-            for (int i = 0; i < "000000".length(); i++) {
+        if (otpFields.size() == otpCode.length()) {
+            for (int i = 0; i < otpCode.length(); i++) {
                 WebElement field = otpFields.get(i);
                 field.clear();
-                field.sendKeys(String.valueOf("000000".charAt(i)));
-                Thread.sleep(100); // Small delay for smooth input
+                field.sendKeys(String.valueOf(otpCode.charAt(i)));
+                Thread.sleep(100);
             }
         } else if (otpFields.size() == 1) {
             WebElement otpField = otpFields.getFirst();
             otpField.clear();
-            otpField.sendKeys("000000");
+            otpField.sendKeys(otpCode);
         } else {
             throw new RuntimeException("Unexpected number of OTP input fields: " + otpFields.size());
         }

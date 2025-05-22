@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
-<suite name="Selenium Tests Suite" parallel="tests" thread-count="1">
-
-    <test name="LoginTest">
+<suite name="MCB Portal Suite">
+    <test name="MCBLoginTest">
         <classes>
-            <class name="Tests.LoginTest"/>
+            <class name="com.jk.selenium.Tests.MCBLoginTest"/>
         </classes>
     </test>
-
 </suite>

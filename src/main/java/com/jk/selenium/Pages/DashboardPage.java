@@ -1,4 +1,4 @@
-package Pages;
+package com.jk.selenium.Pages;
 
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
