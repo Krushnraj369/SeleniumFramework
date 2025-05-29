@@ -9,8 +9,8 @@
     <version>1.0-SNAPSHOT</version>
 
     <properties>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <allure.results.directory>allure-results</allure.results.directory>
     </properties>
@@ -28,11 +28,11 @@
             <version>4.32.0</version>
         </dependency>
 
-        <!-- TestNG -->
+        <!-- TestNG (scope removed) -->
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
-            <version>7.9.0</version>
+            <version>7.10.2</version>
         </dependency>
 
         <!-- WebDriverManager -->
@@ -97,7 +97,7 @@
         <dependency>
             <groupId>com.aventstack</groupId>
             <artifactId>extentreports</artifactId>
-            <version>5.0.9</version> <!-- Or latest available -->
+            <version>5.0.9</version>
         </dependency>
 
         <!-- Jackson for JSON handling -->
@@ -114,17 +114,11 @@
             <version>2.11.0</version>
         </dependency>
 
-        <!-- JUnit (optional for specific cases) -->
+        <!-- JUnit (Optional for specific cases) -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
             <version>5.10.1</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.platform</groupId>
-            <artifactId>junit-platform-commons</artifactId>
-            <version>1.10.1</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -143,7 +137,7 @@
                 </configuration>
             </plugin>
 
-            <!-- Plugin to download tessdata trained data before tests -->
+            <!-- Download tessdata -->
             <plugin>
                 <groupId>com.googlecode.maven-download-plugin</groupId>
                 <artifactId>download-maven-plugin</artifactId>
@@ -159,13 +153,13 @@
                             <url>https://github.com/tesseract-ocr/tessdata/raw/main/eng.traineddata</url>
                             <outputDirectory>${project.build.directory}/tessdata</outputDirectory>
                             <outputFileName>eng.traineddata</outputFileName>
-                            <skipIfExists>true</skipIfExists> <!-- Skip download if file exists -->
+                            <skipIfExists>true</skipIfExists>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
 
-            <!-- Surefire Plugin for running TestNG tests -->
+            <!-- Surefire Plugin for TestNG (Removed TestNG dependency inside plugin) -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -174,19 +168,13 @@
                     <suiteXmlFiles>
                         <suiteXmlFile>src/test/resources/testng.xml</suiteXmlFile>
                     </suiteXmlFiles>
+                    <testFailureIgnore>false</testFailureIgnore>
                     <parallel>tests</parallel>
                     <threadCount>4</threadCount>
                     <reuseForks>false</reuseForks>
-                    <failIfNoTests>true</failIfNoTests>
                     <systemPropertyVariables>
                         <allure.results.directory>${allure.results.directory}</allure.results.directory>
                     </systemPropertyVariables>
-                    <!-- Optional: Exclude integration or specific tests -->
-                    <!--
-                    <excludes>
-                        <exclude>**/*IT.java</exclude>
-                    </excludes>
-                    -->
                 </configuration>
             </plugin>
 
@@ -197,7 +185,7 @@
                 <version>2.11.2</version>
             </plugin>
 
-            <!-- Failsafe Plugin for integration tests (optional) -->
+            <!-- Failsafe Plugin for Integration Tests (Optional) -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>

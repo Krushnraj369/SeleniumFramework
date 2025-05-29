@@ -1,4 +1,4 @@
-package com.mcb.ocr;
+package com.jk.selenium.Util;
 
 import net.sourceforge.tess4j.Tesseract;
 import net.sourceforge.tess4j.TesseractException;

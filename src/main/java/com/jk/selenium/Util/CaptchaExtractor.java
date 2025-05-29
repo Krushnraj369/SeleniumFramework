@@ -1,7 +1,6 @@
 package com.jk.selenium.Util;
 
 import org.openqa.selenium.*;
-
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -11,23 +10,33 @@ import java.util.Properties;
 
 public class CaptchaExtractor {
 
-    public static void captureCaptchaImage(WebDriver driver, WebElement captchaElement, String filePath) throws Exception {
-        // Step 1: Full page screenshot
+    /**
+     * Captures screenshot of the CAPTCHA element and saves it to the given filePath.
+     * @param driver Selenium WebDriver instance
+     * @param captchaElement WebElement of the CAPTCHA image
+     * @param filePath Absolute or relative path where cropped CAPTCHA image should be saved
+     * @throws IOException If any file IO error occurs
+     */
+    public static void captureCaptchaImage(WebDriver driver, WebElement captchaElement, String filePath) throws IOException {
+        // Full page screenshot
         File screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
         BufferedImage fullImg = ImageIO.read(screenshot);
 
-        // Step 2: Get location and size of the captcha
+        // Get location and size of CAPTCHA element
         Point point = captchaElement.getLocation();
         int eleWidth = captchaElement.getSize().getWidth();
         int eleHeight = captchaElement.getSize().getHeight();
 
-        // Step 3: Crop captcha from full image
+        // Crop the CAPTCHA image
         BufferedImage captchaImg = fullImg.getSubimage(point.getX(), point.getY(), eleWidth, eleHeight);
+
+        // Save the cropped image to filePath
         ImageIO.write(captchaImg, "png", new File(filePath));
 
-        System.out.println("✅ Cropped captcha saved at: " + filePath);
+        System.out.println("✅ Captcha cropped and saved at: " + filePath);
     }
 
+    // ConfigReader should ideally be in separate file, but for now keeping here per your snippet
     public static class ConfigReader {
         private static final Properties properties = new Properties();
 
@@ -36,6 +45,8 @@ public class CaptchaExtractor {
                 properties.load(fis);
             } catch (IOException e) {
                 System.err.println("⚠️ Failed to load config.properties: " + e.getMessage());
+                // You can also rethrow RuntimeException if you want to fail fast
+                // throw new RuntimeException("Failed to load config.properties", e);
             }
         }
 

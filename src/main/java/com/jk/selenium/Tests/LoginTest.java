@@ -113,7 +113,7 @@ public class LoginTest {
                 Thread.sleep(100);
             }
         } else if (otpFields.size() == 1) {
-            WebElement otpField = otpFields.getFirst();
+            WebElement otpField = otpFields.get(0);
             otpField.clear();
             otpField.sendKeys(otpCode);
         } else {

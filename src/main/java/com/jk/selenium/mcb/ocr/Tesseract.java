@@ -4,11 +4,12 @@ import java.io.File;
 
 public class Tesseract {
     public void setDatapath(String s) {
-        // You can implement if needed
+        // फिलहाल कोई implementation नहीं
     }
 
     public String doOCR(File imageFile) {
-        // TODO: implement actual OCR logic here
-        return "";  // temporary return to fix compilation error
+        // असली OCR यहां implement करें
+        // फिलहाल खाली स्ट्रिंग वापस कर रहा हूं ताकि compile error न आए
+        return "";
     }
 }

@@ -10,14 +10,23 @@ import java.io.File;
 
 public class CaptchaOCR {
 
-    public static String readCaptchaText(String imagePath) {
-        ITesseract tesseract = new Tesseract();
-        tesseract.setDatapath("C:\\Program Files\\Tesseract-OCR\\tessdata"); // path to tessdata folder
+    private final ITesseract tesseract;
 
+    // Constructor में datapath set करें ताकि flexibility मिले
+    public CaptchaOCR(String tessDataPath) {
+        tesseract = new Tesseract();
+        tesseract.setDatapath(tessDataPath);  // tessdata folder का path
+        tesseract.setLanguage("eng");
+        // अगर चाहें तो whitelist सेट कर सकते हैं:
+        tesseract.setTessVariable("tessedit_char_whitelist", "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789");
+    }
+
+    public String readCaptchaText(String imagePath) {
         try {
             BufferedImage img = ImageIO.read(new File(imagePath));
             String text = tesseract.doOCR(img);
-            return text.trim().replaceAll("[^a-zA-Z0-9]", ""); // cleanup
+            // केवल alpha-numeric characters ही रखें, बाकी हटाएं
+            return text.trim().replaceAll("[^a-zA-Z0-9]", "");
         } catch (Exception e) {
             System.err.println("OCR failed: " + e.getMessage());
             return "";
