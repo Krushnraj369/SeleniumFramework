@@ -1,11 +1,12 @@
 package com.jk.selenium.Pages;
 
 import com.jk.selenium.mcb.ocr.OCRUtil;
-import com.jk.selenium.Util.ConfigReader;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.time.Duration;
 
@@ -13,7 +14,6 @@ public class MCBLoginPage {
     private WebDriver driver;
     private WebDriverWait wait;
 
-    // Locators
     private final By corporateIdField = By.cssSelector("input[placeholder='Enter Corporate ID']");
     private final By loginIdField = By.cssSelector("input[placeholder='Enter Login ID']");
     private final By passwordField = By.cssSelector("input[placeholder='Enter Password']");
@@ -24,10 +24,9 @@ public class MCBLoginPage {
 
     public MCBLoginPage(WebDriver driver) {
         this.driver = driver;
-        this.wait = new WebDriverWait(driver, Duration.ofSeconds(20));
+        this.wait = new WebDriverWait(driver, Duration.ofSeconds(10));
     }
 
-    // Input methods
     public void enterCorporateId(String corpId) {
         WebElement element = wait.until(ExpectedConditions.visibilityOfElementLocated(corporateIdField));
         element.clear();
@@ -47,9 +46,25 @@ public class MCBLoginPage {
     }
 
     public void enterCaptcha(String captchaText) {
-        WebElement element = wait.until(ExpectedConditions.visibilityOfElementLocated(captchaField));
+        WebElement element = wait.until(ExpectedConditions.elementToBeClickable(captchaField));
         element.clear();
+
+        ((JavascriptExecutor) driver).executeScript("arguments[0].focus();", element);
+
+        try { Thread.sleep(200); } catch (InterruptedException e) {}
+
         element.sendKeys(captchaText);
+
+        try { Thread.sleep(300); } catch (InterruptedException e) {}
+
+        String entered = element.getAttribute("value");
+        System.out.println("Entered Captcha: " + entered);
+
+        // If sendKeys failed, fallback with JS value set
+        if (!entered.equalsIgnoreCase(captchaText)) {
+            ((JavascriptExecutor) driver).executeScript("arguments[0].value = arguments[1];", element, captchaText);
+            System.out.println("Captcha input set by JS fallback");
+        }
     }
 
     public void clickLogin() {
@@ -61,17 +76,19 @@ public class MCBLoginPage {
         return loginForm;
     }
 
-    /**
-     * Capture captcha image screenshot and use OCR to extract text.
-     *
-     * @return Captcha text or empty string if extraction fails.
-     */
+    public WebElement getLoginForm() {
+        return wait.until(ExpectedConditions.visibilityOfElementLocated(loginForm));
+    }
+
     public String readCaptchaTextUsingOCR() {
         try {
             WebElement captchaImgElement = wait.until(ExpectedConditions.visibilityOfElementLocated(captchaImage));
-            File screenshot = captchaImgElement.getScreenshotAs(OutputType.FILE);
+            Thread.sleep(500); // wait for image stability
 
-            String captchaText = OCRUtil.getCaptchaText(screenshot);
+            File screenshot = captchaImgElement.getScreenshotAs(OutputType.FILE);
+            BufferedImage bufferedImage = ImageIO.read(screenshot);
+
+            String captchaText = OCRUtil.getCaptchaTextFromBufferedImage(bufferedImage);
 
             System.out.println("Extracted CAPTCHA via OCR: " + captchaText);
 

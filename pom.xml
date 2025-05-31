@@ -28,7 +28,7 @@
             <version>4.32.0</version>
         </dependency>
 
-        <!-- TestNG (scope removed) -->
+        <!-- TestNG -->
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
@@ -54,7 +54,7 @@
             <version>1.4.14</version>
         </dependency>
 
-        <!-- Apache POI for Excel/Word/PDF document validation -->
+        <!-- Apache POI for Excel/Word/PDF -->
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi</artifactId>
@@ -71,7 +71,25 @@
             <version>2.0.30</version>
         </dependency>
 
-        <!-- OCR Support (Tesseract via Tess4J) -->
+        <!-- OpenCV and JavaCV -->
+        <dependency>
+            <groupId>org.bytedeco</groupId>
+            <artifactId>opencv-platform</artifactId>
+            <version>4.10.0-1.5.11</version>
+        </dependency>
+        <dependency>
+            <groupId>org.bytedeco</groupId>
+            <artifactId>javacv-platform</artifactId>
+            <version>1.5.7</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.openpnp</groupId>
+            <artifactId>opencv</artifactId>
+            <version>4.9.0-0</version>
+        </dependency>
+
+        <!-- OCR Support (Tess4J) -->
         <dependency>
             <groupId>net.sourceforge.tess4j</groupId>
             <artifactId>tess4j</artifactId>
@@ -85,7 +103,7 @@
             <version>2.24.0</version>
         </dependency>
 
-        <!-- Lombok  -->
+        <!-- Lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -100,7 +118,7 @@
             <version>5.0.9</version>
         </dependency>
 
-        <!-- Jackson for JSON handling -->
+        <!-- Jackson for JSON -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
@@ -114,12 +132,18 @@
             <version>2.11.0</version>
         </dependency>
 
-        <!-- JUnit (Optional for specific cases) -->
+        <!-- JUnit Jupiter API and Engine -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
-            <version>5.10.1</version>
-            <scope>test</scope>
+            <version>5.13.0</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>5.13.0</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 
@@ -159,7 +183,7 @@
                 </executions>
             </plugin>
 
-            <!-- Surefire Plugin for TestNG (Removed TestNG dependency inside plugin) -->
+            <!-- Surefire Plugin for TestNG -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -185,7 +209,7 @@
                 <version>2.11.2</version>
             </plugin>
 
-            <!-- Failsafe Plugin for Integration Tests (Optional) -->
+            <!-- Failsafe Plugin for Integration Tests -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
@@ -201,4 +225,5 @@
             </plugin>
         </plugins>
     </build>
+
 </project>

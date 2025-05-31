@@ -1,50 +1,33 @@
 package com.jk.selenium.Tests;
 
 import com.jk.selenium.Pages.MCBLoginPage;
+import com.jk.selenium.Pages.MCBOtpPage;
+import com.jk.selenium.Pages.MCBDashboardPage;
 import com.jk.selenium.Util.ConfigReader;
-import com.jk.selenium.mcb.ocr.OCRUtil;
-import org.openqa.selenium.*;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.Assert;
 import org.testng.ITestResult;
 import org.testng.annotations.*;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.apache.commons.io.FileUtils;
+import org.openqa.selenium.TakesScreenshot;
+import org.openqa.selenium.OutputType;
 
 import java.io.File;
 import java.io.IOException;
-import java.time.Duration;
 
-public class MCBLoginTest {
-    private static final Logger logger = LogManager.getLogger(MCBLoginTest.class);
-
-    private WebDriver driver;
-    private WebDriverWait wait;
+public class MCBLoginTest extends BaseTest {
     private MCBLoginPage loginPage;
+    private MCBOtpPage otpPage;
+    private MCBDashboardPage dashboardPage;
 
-    private final By postLoginElement = By.xpath("//span[contains(text(), 'Dashboard')]");
-
-    @BeforeClass
-    public void setUp() {
-        System.setProperty("webdriver.chrome.driver", ConfigReader.getProperty("chromedriver.path"));
-        ChromeOptions options = new ChromeOptions();
-        options.addArguments("--start-maximized");
-        options.addArguments("--disable-notifications");
-        options.addArguments("--remote-allow-origins=*");
-        driver = new ChromeDriver(options);
-        wait = new WebDriverWait(driver, Duration.ofSeconds(30));
-        logger.info("Browser initialized successfully");
-    }
+    private final int MAX_CAPTCHA_RETRIES = 3;
 
     @BeforeMethod
     public void navigateToLogin() {
         driver.get(ConfigReader.getProperty("mcb.url"));
         loginPage = new MCBLoginPage(driver);
-        wait.until(ExpectedConditions.visibilityOfElementLocated(loginPage.getLoginFormLocator()));
+        wait.until(ExpectedConditions.visibilityOf(loginPage.getLoginForm()));
         logger.info("Navigated to login page successfully");
     }
 
@@ -52,32 +35,65 @@ public class MCBLoginTest {
     public void testLoginToMCBPortal() {
         logger.info("🚀 Starting MCB Login Test");
 
-        // Enter Credentials
-        loginPage.enterCorporateId(ConfigReader.getProperty("mcb.corporateId"));
-        loginPage.enterLoginId(ConfigReader.getProperty("mcb.loginId"));
-        loginPage.enterPassword(ConfigReader.getProperty("mcb.password"));
-        logger.info("Credentials entered successfully");
+        boolean loggedInSuccessfully = false;
+        int attempt = 0;
 
-        // Extract Captcha and Enter
-        String captchaText = loginPage.readCaptchaTextUsingOCR();
-        Assert.assertFalse(captchaText.isEmpty(), "Captcha extraction failed - No captcha found");
+        while (attempt < MAX_CAPTCHA_RETRIES && !loggedInSuccessfully) {
+            attempt++;
+            logger.info("Login attempt #" + attempt);
 
-        loginPage.enterCaptcha(captchaText);
-        logger.info("Captcha entered successfully");
+            loginPage.enterCorporateId(ConfigReader.getProperty("mcb.corporateId"));
+            loginPage.enterLoginId(ConfigReader.getProperty("mcb.loginId"));
+            loginPage.enterPassword(ConfigReader.getProperty("mcb.password"));
 
-        // Click Login and verify
-        loginPage.clickLogin();
-        try {
-            wait.until(ExpectedConditions.visibilityOfElementLocated(postLoginElement));
-            logger.info("✅ Login successful. Dashboard element found.");
-        } catch (TimeoutException e) {
-            logger.error("❌ Login failed or dashboard not loaded", e);
-            String screenshotPath = takeScreenshot("login_failure");
-            if (!screenshotPath.isEmpty()) {
-                logger.info("Screenshot saved at: {}", screenshotPath);
+            String captchaText = loginPage.readCaptchaTextUsingOCR();
+            logger.info("Captcha extracted: " + captchaText);
+
+            if (captchaText.isEmpty()) {
+                logger.warn("Captcha extraction failed on attempt " + attempt);
+                if (attempt == MAX_CAPTCHA_RETRIES) {
+                    Assert.fail("Captcha extraction failed after max retries.");
+                }
+                continue;
             }
-            Assert.fail("Login did not succeed or Dashboard not found.");
+
+            loginPage.enterCaptcha(captchaText);
+            loginPage.clickLogin();
+
+            otpPage = new MCBOtpPage(driver);
+            try {
+                wait.until(ExpectedConditions.visibilityOfAllElements(otpPage.getOtpFields()));
+                logger.info("OTP input fields visible, login success confirmed.");
+                loggedInSuccessfully = true;
+            } catch (TimeoutException e) {
+                logger.warn("OTP fields not found, login probably failed due to wrong captcha. Retrying...");
+                if (attempt == MAX_CAPTCHA_RETRIES) {
+                    Assert.fail("Login failed after max captcha retries.");
+                } else {
+                    driver.navigate().refresh();
+                    wait.until(ExpectedConditions.visibilityOf(loginPage.getLoginForm()));
+                }
+            }
         }
+
+        Assert.assertTrue(loggedInSuccessfully, "Login unsuccessful after retries.");
+
+        String otp = ConfigReader.getProperty("mcb.otp");
+        Assert.assertNotNull(otp, "OTP value is missing in config");
+        Assert.assertFalse(otp.trim().isEmpty(), "OTP value in config is empty");
+
+        otpPage.enterOtpDigits(otp);
+        otpPage.clickLoginButton();
+
+        dashboardPage = new MCBDashboardPage(driver);
+        boolean isDashboardLoaded = dashboardPage.waitForDashboardToLoad();
+
+        if (!isDashboardLoaded) {
+            String screenshotPath = takeScreenshot("dashboard_load_failure");
+            logger.error("Dashboard did not load after OTP submission. Screenshot saved at: " + screenshotPath);
+        }
+        Assert.assertTrue(isDashboardLoaded, "Dashboard did not load after login and OTP submission.");
+        logger.info("🎉 Login successful and dashboard loaded.");
     }
 
     private String takeScreenshot(String name) {
@@ -104,14 +120,6 @@ public class MCBLoginTest {
             if (!screenshotPath.isEmpty()) {
                 logger.error("Test failed. Screenshot saved at: {}", screenshotPath);
             }
-        }
-    }
-
-    @AfterClass
-    public void tearDown() {
-        if (driver != null) {
-            driver.quit();
-            logger.info("🧹 Browser closed after test.");
         }
     }
 }

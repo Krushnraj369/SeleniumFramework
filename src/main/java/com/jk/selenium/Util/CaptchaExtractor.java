@@ -1,61 +1,40 @@
 package com.jk.selenium.Util;
 
 import org.openqa.selenium.*;
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
+import org.openqa.selenium.OutputType;
+
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.Properties;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 
 public class CaptchaExtractor {
 
     /**
-     * Captures screenshot of the CAPTCHA element and saves it to the given filePath.
+     * Captcha image ko download kar ke local file mein save karta hai.
+     *
      * @param driver Selenium WebDriver instance
-     * @param captchaElement WebElement of the CAPTCHA image
-     * @param filePath Absolute or relative path where cropped CAPTCHA image should be saved
-     * @throws IOException If any file IO error occurs
+     * @param fileName File ka naam jisme captcha save karna hai (e.g. "captcha.png")
+     * @throws IOException Agar file save nahi ho payi
      */
-    public static void captureCaptchaImage(WebDriver driver, WebElement captchaElement, String filePath) throws IOException {
-        // Full page screenshot
-        File screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
-        BufferedImage fullImg = ImageIO.read(screenshot);
+    public static void download(WebDriver driver, String fileName) throws IOException {
+        try {
+            // Locate captcha image element (update selector as per your page)
+            WebElement captchaImg = driver.findElement(By.cssSelector("img[alt='Captcha verification']"));
 
-        // Get location and size of CAPTCHA element
-        Point point = captchaElement.getLocation();
-        int eleWidth = captchaElement.getSize().getWidth();
-        int eleHeight = captchaElement.getSize().getHeight();
+            // Screenshot le ke temporary file bana lo
+            File screenshot = captchaImg.getScreenshotAs(OutputType.FILE);
 
-        // Crop the CAPTCHA image
-        BufferedImage captchaImg = fullImg.getSubimage(point.getX(), point.getY(), eleWidth, eleHeight);
+            // Destination file
+            File destination = new File(System.getProperty("user.dir") + "/" + fileName);
 
-        // Save the cropped image to filePath
-        ImageIO.write(captchaImg, "png", new File(filePath));
+            // Temporary screenshot ko destination par copy karo
+            Files.copy(screenshot.toPath(), destination.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
-        System.out.println("✅ Captcha cropped and saved at: " + filePath);
-    }
-
-    // ConfigReader should ideally be in separate file, but for now keeping here per your snippet
-    public static class ConfigReader {
-        private static final Properties properties = new Properties();
-
-        static {
-            try (FileInputStream fis = new FileInputStream("src/test/resources/config.properties")) {
-                properties.load(fis);
-            } catch (IOException e) {
-                System.err.println("⚠️ Failed to load config.properties: " + e.getMessage());
-                // You can also rethrow RuntimeException if you want to fail fast
-                // throw new RuntimeException("Failed to load config.properties", e);
-            }
-        }
-
-        public static String getProperty(String key) {
-            String value = properties.getProperty(key);
-            if (value == null) {
-                System.err.println("⚠️ Property key not found: " + key);
-            }
-            return value;
+        } catch (NoSuchElementException e) {
+            throw new IOException("Captcha image element not found", e);
+        } catch (WebDriverException e) {
+            throw new IOException("Failed to capture captcha image", e);
         }
     }
 }

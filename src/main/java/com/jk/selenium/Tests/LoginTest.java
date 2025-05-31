@@ -24,13 +24,12 @@ public class LoginTest {
 
     @BeforeMethod
     public void setUp() {
-        System.setProperty("webdriver.chrome.driver", "C:\\Tools\\chromedriver-win64\\chromedriver.exe");
+        System.setProperty("webdriver.chrome.driver", ConfigReader.getProperty("chromedriver.path"));
         driver = new ChromeDriver();
         driver.manage().window().maximize();
 
         wait = new WebDriverWait(driver, Duration.ofSeconds(20));
 
-        // ✅ Get URL from config file
         String adminUrl = ConfigReader.getProperty("admin.url");
         driver.get(adminUrl);
 
@@ -40,54 +39,57 @@ public class LoginTest {
 
     @Test
     public void testLoginWithOtpAndDashboardLoad() throws InterruptedException {
-        // ✅ Get credentials from config
-        String username = ConfigReader.getProperty("admin.username");
-        String password = ConfigReader.getProperty("admin.password");
-        String otpCode = ConfigReader.getProperty("admin.otp");
-
         // Step 1: Enter username
         wait.until(ExpectedConditions.visibilityOf(loginPage.getUsernameField()));
-        loginPage.enterUsername(username);
+        loginPage.enterUsername(ConfigReader.getProperty("admin.username"));
         System.out.println("✅ Entered username.");
 
         // Step 2: Enter password
         wait.until(ExpectedConditions.visibilityOf(loginPage.getPasswordField()));
-        loginPage.enterPassword(password);
+        loginPage.enterPassword(ConfigReader.getProperty("admin.password"));
         System.out.println("✅ Entered password.");
 
-        // Step 3: Click Login button
+        // Step 3: Read Captcha using OCR and enter it
+        wait.until(ExpectedConditions.visibilityOf(loginPage.getCaptchaImage()));
+        String captchaText = loginPage.readCaptchaUsingOCR();
+        if (captchaText.isEmpty()) {
+            throw new RuntimeException("❌ Captcha text extraction failed!");
+        }
+        loginPage.enterCaptcha(captchaText);  // Captcha enter method added in LoginPage
+        System.out.println("✅ Entered captcha: " + captchaText);
+
+        // Step 4: Click Login button
         wait.until(ExpectedConditions.elementToBeClickable(loginPage.getLoginButton()));
         loginPage.clickLoginButton();
         System.out.println("✅ Clicked login button.");
 
-        // Step 4: Wait for OTP fields
+        // Step 5: Wait for OTP fields
         wait.until(ExpectedConditions.visibilityOfAllElements(otpPage.getOtpFields()));
         System.out.println("✅ OTP fields are visible.");
 
-        // Step 5: Enter OTP digits (use config value)
-        enterOtpDigits(otpCode);
+        // Step 6: Enter OTP digits (from config)
+        enterOtpDigits(ConfigReader.getProperty("admin.otp"));
         System.out.println("✅ OTP entered.");
 
-        // Step 6: Click Verify button (updated locator)
+        // Step 7: Click Verify button
         By verifyBtn = By.xpath("//button[contains(@class, 'gradient-btn') and contains(normalize-space(.), 'Verify')]");
         wait.until(ExpectedConditions.elementToBeClickable(verifyBtn)).click();
         System.out.println("✅ Clicked Verify button.");
 
-        // Step 7: Wait and verify dashboard load
+        // Step 8: Wait and verify dashboard load
         DashboardPage dashboardPage = new DashboardPage(driver);
         if (dashboardPage.waitForDashboardToLoad()) {
             System.out.println("✅ Dashboard loaded successfully.");
 
-            // Step 8: Use DashboardPage method to interact with search bar
+            // Step 9: Interact with dashboard search
             try {
                 dashboardPage.enterSearchText("parameter Confirmation");
                 System.out.println("✅ Search text entered successfully in dashboard.");
-                Thread.sleep(5000); // Optional observation pause
+                Thread.sleep(5000); // Optional pause
             } catch (Exception e) {
                 System.err.println("❌ Failed to enter search text: " + e.getMessage());
                 throw e;
             }
-
         } else {
             System.err.println("❌ Dashboard failed to load.");
             System.err.println("Current URL: " + driver.getCurrentUrl());
@@ -99,9 +101,6 @@ public class LoginTest {
         }
     }
 
-    /**
-     * Helper method to enter OTP digits one by one or as a full string based on field count
-     */
     private void enterOtpDigits(String otpCode) throws InterruptedException {
         List<WebElement> otpFields = otpPage.getOtpFields();
 

@@ -14,12 +14,18 @@ public class ConfigReader {
              InputStreamReader reader = new InputStreamReader(fis, StandardCharsets.UTF_8)) {
             properties.load(reader);
         } catch (IOException e) {
+            System.err.println("❌ Failed to load config.properties file. Please check the file path and format.");
+            e.printStackTrace();
             throw new RuntimeException("❌ Failed to load config.properties file!", e);
         }
     }
 
     public static String getProperty(String key) {
-        return properties.getProperty(key);
+        String value = properties.getProperty(key);
+        if (value == null || value.trim().isEmpty()) {
+            System.err.println("⚠️ Config key missing or empty: " + key);
+        }
+        return value;
     }
 
     public static String getOrDefault(String key, String defaultValue) {
