@@ -12,34 +12,42 @@ import org.testng.annotations.*;
 import java.time.Duration;
 
 public class BaseTest {
+
     protected WebDriver driver;
     protected WebDriverWait wait;
     protected static final Logger logger = LogManager.getLogger(BaseTest.class);
 
-    @BeforeSuite
+    @BeforeSuite(alwaysRun = true)
     public void setUpSuite() {
-        System.setProperty("webdriver.chrome.driver", ConfigReader.getProperty("chromedriver.path"));
+        String chromeDriverPath = ConfigReader.getProperty("chromedriver.path");
+        System.setProperty("webdriver.chrome.driver", chromeDriverPath);
+        logger.info("✅ ChromeDriver path set from config: " + chromeDriverPath);
     }
 
-    @BeforeClass
+    @BeforeClass(alwaysRun = true)
     public void setUp() {
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--start-maximized");
         options.addArguments("--disable-notifications");
         options.addArguments("--remote-allow-origins=*");
+
         driver = new ChromeDriver(options);
         wait = new WebDriverWait(driver, Duration.ofSeconds(30));
-        logger.info("Browser initialized successfully");
+        logger.info("🚀 Browser launched and maximized.");
     }
 
-    @AfterClass
-    public void tearDown() throws InterruptedException {
-        logger.info("Waiting 10 seconds before closing browser for inspection...");
-        Thread.sleep(10000);
-
-        if (driver != null) {
-            driver.quit();
-            logger.info("🧹 Browser closed after test.");
+    @AfterClass(alwaysRun = true)
+    public void tearDown() {
+        try {
+            logger.info("🕒 Waiting 10 seconds before closing browser for inspection...");
+            Thread.sleep(10000);
+        } catch (InterruptedException e) {
+            logger.error("Thread sleep interrupted: " + e.getMessage());
+        } finally {
+            if (driver != null) {
+                driver.quit();
+                logger.info("🧹 Browser session ended.");
+            }
         }
     }
 }

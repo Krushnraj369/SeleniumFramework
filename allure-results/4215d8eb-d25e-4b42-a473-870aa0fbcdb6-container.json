@@ -1,0 +1,1 @@
+{"uuid":"4215d8eb-d25e-4b42-a473-870aa0fbcdb6","name":"MCB Portal Suite","children":["05d354c7-6c10-4088-89e1-163623eeb2e3"],"befores":[{"name":"setUpSuite","status":"passed","stage":"finished","description":"","steps":[],"attachments":[],"parameters":[],"start":1748887297608,"stop":1748887297621}],"afters":[],"start":1748887297571,"stop":1748887318013}

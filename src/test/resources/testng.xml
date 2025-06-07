@@ -1,29 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
-<suite name="MCB Portal Suite" parallel="false">
-
-    <test name="MCB Login Test">
+<suite name="IBMB Suite" parallel="none">
+    <test name="IBMB Tests">
         <classes>
-            <class name="com.jk.selenium.Tests.MCBLoginTest"/>
+            <class name="com.jk.selenium.Tests.IBMBTests.IBMBLoginTest"/>
+            <class name="com.jk.selenium.Tests.IBMBTests.IBMBBeneficiaryManagementTest"/>
         </classes>
     </test>
-
-    <test name="MCB Dashboard Test">
-        <classes>
-            <class name="com.jk.selenium.Tests.MCBDashboardTest"/>
-        </classes>
-    </test>
-
-    <test name="MCB Profile Test">
-        <classes>
-            <class name="com.jk.selenium.Tests.MCBProfileTest"/>
-        </classes>
-    </test>
-
-    <test name="MCB Beneficiary Management Test">
-        <classes>
-            <class name="com.jk.selenium.Tests.BeneficiaryManagementTest"/>
-        </classes>
-    </test>
-
 </suite>
